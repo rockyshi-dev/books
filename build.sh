@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 rm -rf out work && mkdir -p out work
 python3 tools/make_index.py books.tsv out/index.html
-while IFS=$'\t' read -r slug repo title blurb; do
+while IFS=$'\t' read -r slug repo title blurb cover code; do
   [[ -z "$slug" || "$slug" == \#* ]] && continue
   # A public book is cloned over https. A private one is cloned over ssh with the deploy key the workflow writes
   # to $SHELF_KEY (the secret SHELF_DEPLOY_KEY); each private book registers that key as a read-only deploy key.

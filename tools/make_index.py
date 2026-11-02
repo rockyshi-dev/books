@@ -1,6 +1,8 @@
 """Write the shelf's home page from books.tsv (slug, repository, title, description per row)."""
 import csv
 import html
+import os
+import shutil
 import sys
 
 PAGE = """<!doctype html>
@@ -19,11 +21,16 @@ body {{ margin: 0; background: var(--bg); color: var(--fg);
 main {{ max-width: 46rem; margin: 0 auto; padding: 3rem 1rem; }}
 h1 {{ font-size: 1.8rem; margin: 0 0 .25rem; }}
 .sub {{ color: var(--muted); margin: 0 0 2.5rem; }}
-a.book {{ display: block; padding: 1.1rem 1.25rem; margin: 0 0 1rem; border: 1px solid var(--line);
-  border-radius: 8px; color: inherit; text-decoration: none; }}
-a.book:hover {{ border-color: var(--accent); }}
-a.book strong {{ display: block; font-size: 1.15rem; color: var(--accent); }}
-a.book span {{ color: var(--muted); font-size: .95rem; }}
+.book {{ display: flex; gap: 1.5rem; align-items: flex-start; padding: 1.25rem; margin: 0 0 1.25rem;
+  border: 1px solid var(--line); border-radius: 8px; }}
+.book img {{ flex: none; width: 150px; height: auto; border-radius: 4px; display: block; }}
+.book h2 {{ font-size: 1.2rem; line-height: 1.35; margin: 0 0 .5rem; }}
+.book h2 a {{ color: var(--accent); text-decoration: none; }}
+.book p {{ margin: 0 0 1rem; color: var(--muted); font-size: .95rem; }}
+.links a {{ display: inline-block; margin-right: .6rem; padding: .3rem .8rem; border: 1px solid var(--accent);
+  border-radius: 6px; color: var(--accent); text-decoration: none; font-size: .9rem; }}
+.links a:hover {{ background: var(--accent); color: var(--bg); }}
+@media (max-width: 34rem) {{ .book {{ flex-direction: column; }} .book img {{ width: 55%; }} }}
 footer {{ margin-top: 3rem; color: var(--muted); font-size: .9rem; }}
 footer a {{ color: var(--muted); }}
 </style>
@@ -39,15 +46,23 @@ footer a {{ color: var(--muted); }}
 </html>
 """
 
-CARD = '<a class="book" href="{slug}/"><strong>{title}</strong><span>{desc}</span></a>'
+CARD = (
+    '<section class="book"><a href="{slug}/"><img src="{cover}" alt="Cover of {title}"></a>'
+    '<div><h2><a href="{slug}/">{title}</a></h2><p>{desc}</p>'
+    '<div class="links"><a href="{slug}/">Read online</a><a href="{code}">Code</a></div></div></section>'
+)
 
 
 def main(src, dst):
     cards = []
+    out = os.path.dirname(dst)
     with open(src, newline="") as f:
         for row in csv.reader((l for l in f if not l.startswith("#") and l.strip()), delimiter="\t"):
-            slug, _repo, title, desc = row
-            cards.append(CARD.format(slug=html.escape(slug), title=html.escape(title), desc=html.escape(desc)))
+            slug, _repo, title, desc, cover, code = row
+            os.makedirs(os.path.join(out, os.path.dirname(cover)), exist_ok=True)
+            shutil.copy(cover, os.path.join(out, cover))
+            cards.append(CARD.format(slug=html.escape(slug), title=html.escape(title), desc=html.escape(desc),
+                                     cover=html.escape(cover), code=html.escape(code)))
     with open(dst, "w") as f:
         f.write(PAGE.format(books="\n".join(cards)))
 

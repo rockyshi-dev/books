@@ -1,7 +1,8 @@
 # Books
 
 The shelf behind https://book.rockyshi.dev. Each row of `books.tsv` is one book: its path under the site, the GitHub
-repository it is built from, its title and a one-line description. `build.sh` clones every repository, runs its
+repository it is built from, its title, a short description, the path of its cover under `covers/` and the URL of
+its code repository. `build.sh` clones every repository, runs its
 `tools/build_site.sh` (MkDocs) and places the result at `/<slug>/`, next to a home page that lists the books.
 The site is rebuilt on every push here and once a day, so a book's latest `main` appears within a day; run the
 workflow by hand to publish sooner.
